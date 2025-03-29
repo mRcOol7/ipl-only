@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPL Live Streaming - Watch Live Cricket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3c72;
+            --secondary-color: #2a5298;
+            --padding-small: 10px;
+            --padding-medium: 20px;
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: var(--padding-medium);
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: #e0e0e0;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .container {
+            width: min(90%, 1400px);
+            margin: 0 auto;
+            padding: var(--padding-medium);
+        }
+
+        .player-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--border-radius);
+            padding: var(--padding-medium);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            margin: 1rem auto;
+            max-width: 100%;
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+            gap: 10px;
+        }
+
+        .responsive-iframe {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: min(68.57%, calc(100vh - 200px));
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .responsive-iframe iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: var(--border-radius);
+            background: #000;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            color: white;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .quality-indicator {
+            position: static;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: white;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Help Modal Styles */
+        .help-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            overflow-y: auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .help-content {
+            position: relative;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            margin: min(15vh, 80px) auto;
+            padding: 25px;
+            width: min(90%, 600px);
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+            max-height: min(80vh, 800px);
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+        }
+
+        .help-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .help-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .help-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        .help-content h2 {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            padding-right: 30px;
+        }
+
+        .close-help {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s ease;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .close-help:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .help-steps {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .help-step {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 0;
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease;
+        }
+
+        .help-step:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .help-step h3 {
+            color: #fff;
+            margin-bottom: 15px;
+            font-size: clamp(1.1rem, 3vw, 1.3rem);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .help-step h3 i {
+            color: #4CAF50;
+        }
+
+        .help-step ul, .help-step ol {
+            margin: 15px 0 15px 25px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .help-step li {
+            margin: 12px 0;
+            line-height: 1.6;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+        }
+
+        .help-step li::marker {
+            color: #4CAF50;
+        }
+
+        .help-note {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(76, 175, 80, 0.1);
+            border-radius: var(--border-radius);
+            border-left: 4px solid #4CAF50;
+        }
+
+        .help-note p {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: clamp(0.9rem, 2vw, 1rem);
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .help-note i {
+            color: #4CAF50;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .help-modal {
+                padding: 15px;
+            }
+
+            .help-content {
+                margin: 40px auto;
+                padding: 20px;
+                width: 95%;
+            }
+
+            .help-step {
+                padding: 15px;
+            }
+
+            .close-help {
+                right: 15px;
+                top: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .help-modal {
+                padding: 10px;
+            }
+
+            .help-content {
+                margin: 20px auto;
+                padding: 15px;
+                width: 100%;
+            }
+
+            .help-step {
+                padding: 12px;
+            }
+
+            .help-step ul, .help-step ol {
+                margin-left: 20px;
+            }
+
+            .close-help {
+                right: 10px;
+                top: 10px;
+                font-size: 24px;
+            }
+        }
+
+        /* Hide all types of ads and unwanted elements */
+        iframe[src*="counter.php"],
+        iframe[src*="banner"],
+        iframe[src*="ad"],
+        img[src*="counter.php"],
+        img[src*="banner"],
+        img[src*="ad"],
+        img[width="1"][height="1"],
+        center a[href*="banner"],
+        [id*="banner"],
+        [class*="banner"],
+        [id*="ad"],
+        [class*="ad"],
+        [id*="popup"],
+        [class*="popup"],
+        scribe-shadow,
+        .banner-container,
+        .ad-container,
+        .advertisement,
+        div[style*="position: fixed"],
+        div[class*="overlay"],
+        div[id*="overlay"] {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            position: absolute !important;
+            top: -9999px !important;
+            left: -9999px !important;
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --padding-medium: 15px;
+                --padding-small: 8px;
+            }
+
+            .container {
+                width: 100%;
+                padding: var(--padding-small);
+            }
+
+            .player-container {
+                padding: var(--padding-small);
+                margin: 0.5rem auto;
+            }
+
+            .controls {
+                gap: 0.5rem;
+            }
+
+            .control-btn {
+                padding: 0.6rem 1rem;
+                min-width: 100px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: var(--padding-small);
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-btn {
+                width: 100%;
+            }
+
+            .responsive-iframe {
+                padding-top: 75%;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .container {
+                max-width: 1600px;
+            }
+
+            .responsive-iframe {
+                max-height: 80vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-cricket"></i> IPL Live Streaming</h1>
+        <p>Watch Live Cricket in HD Quality</p>
+    </div>
+    
+    <div id="helpModal" class="help-modal">
+        <div class="help-content">
+            <span class="close-help" onclick="toggleHelp()">&times;</span>
+            <h2>How to Remove Ads</h2>
+            <div class="help-steps">
+                <div class="help-step">
+                    <h3><i class="fas fa-times-circle"></i> Method 1: Quick Remove</h3>
+                    <p>Look for small 'x' icons to close ads in these locations:</p>
+                    <ul>
+                        <li><i class="fas fa-arrow-right"></i> Top-right corner for overlay ads</li>
+                        <li><i class="fas fa-arrow-right"></i> Top-left corner for banner ads</li>
+                        <li><i class="fas fa-arrow-right"></i> Sometimes in corners of video player</li>
+                    </ul>
+                </div>
+                <div class="help-step">
+                    <h3><i class="fas fa-code"></i> Method 2: Permanent Remove</h3>
+                    <p>Use browser developer tools to remove ads permanently:</p>
+                    <ol>
+                        <li>Right-click on the ad and select "Inspect Element"</li>
+                        <li>In the developer tools, look for the highlighted code</li>
+                        <li>Right-click on the highlighted element and select "Delete element"</li>
+                        <li>Repeat for any remaining ads you see</li>
+                    </ol>
+                </div>
+                <div class="help-note">
+                    <p>
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Pro Tip: Most ads can be removed by clicking the 'x' button in corners. If an ad persists, try the permanent removal method.</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="player-container">
+            <div class="player-header">
+                <div class="quality-indicator">HD</div>
+            </div>
+            <div class="responsive-iframe">
+                <iframe 
+                    allow="encrypted-media" 
+                    scrolling="no" 
+                    frameborder="0" 
+                    allowfullscreen="yes" 
+                    src="//emb.apl374.me/player/live.php?id=235548&amp;w=700&amp;h=480" 
+                    sandbox="allow-same-origin allow-scripts allow-forms">
+                </iframe>
+            </div>
+            <div class="controls">
+                <button class="control-btn" onclick="toggleFullscreen()">
+                    <i class="fas fa-expand"></i> Fullscreen
+                </button>
+                <button class="control-btn" onclick="refreshPlayer()">
+                    <i class="fas fa-sync"></i> Refresh Stream
+                </button>
+                <button class="control-btn" onclick="toggleHelp()">
+                    <i class="fas fa-shield-alt"></i> Remove Ads
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFullscreen() {
+            const iframe = document.querySelector('iframe');
+            if (iframe.requestFullscreen) {
+                iframe.requestFullscreen();
+            } else if (iframe.webkitRequestFullscreen) {
+                iframe.webkitRequestFullscreen();
+            } else if (iframe.msRequestFullscreen) {
+                iframe.msRequestFullscreen();
+            }
+        }
+
+        function refreshPlayer() {
+            const iframe = document.querySelector('iframe');
+            iframe.src = iframe.src;
+        }
+
+        // Enhanced ad and banner blocking
+        function removeAdsAndBanners() {
+            const selectorsToRemove = [
+                'center a[target="_blank"]',
+                'img[width="1"][height="1"]',
+                'img[src*="counter.php"]',
+                'img[src*="banner"]',
+                'img[src*="ad"]',
+                'scribe-shadow',
+                '[id*="banner"]',
+                '[class*="banner"]',
+                '[id*="ad"]',
+                '[class*="ad"]',
+                'center',
+                'iframe[src*="counter"]',
+                'iframe[src*="banner"]'
+            ];
+
+            // Remove elements from main document
+            selectorsToRemove.forEach(selector => {
+                document.querySelectorAll(selector).forEach(element => {
+                    element.remove();
+                });
+            });
+
+            // Try to access iframe content and remove ads
+            try {
+                const iframe = document.querySelector('iframe');
+                if (!iframe.contentWindow) return;
+                
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!iframeDoc) return;
+                
+                // Add CSS to iframe
+                const style = iframeDoc.createElement('style');
+                style.textContent = `
+                    center, 
+                    img[width="1"][height="1"],
+                    img[src*="counter.php"],
+                    img[src*="banner"],
+                    img[src*="ad"],
+                    iframe[src*="counter"],
+                    iframe[src*="banner"],
+                    [id*="banner"],
+                    [class*="banner"],
+                    [id*="ad"],
+                    [class*="ad"],
+                    scribe-shadow,
+                    .banner-container,
+                    .ad-container,
+                    .advertisement { 
+                        display: none !important;
+                        opacity: 0 !important;
+                        visibility: hidden !important;
+                        pointer-events: none !important;
+                    }
+                `;
+                iframeDoc.head.appendChild(style);
+
+                // Remove elements from iframe
+                selectorsToRemove.forEach(selector => {
+                    iframeDoc.querySelectorAll(selector).forEach(element => {
+                        element.remove();
+                    });
+                });
+            } catch (e) {
+                // Silently handle cross-origin restrictions
+            }
+        }
+
+        // Initialize ad removal
+        document.addEventListener('DOMContentLoaded', removeAdsAndBanners);
+        
+        // Check for new ads every second
+        setInterval(removeAdsAndBanners, 1000);
+
+        // Handle iframe load events
+        const iframe = document.querySelector('iframe');
+        iframe.addEventListener('load', removeAdsAndBanners);
+        
+        // Handle responsive iframe sizing
+        function adjustIframeSize() {
+            const container = document.querySelector('.responsive-iframe');
+            const windowHeight = window.innerHeight;
+            const headerHeight = document.querySelector('.header').offsetHeight;
+            const controlsHeight = document.querySelector('.controls').offsetHeight;
+            const maxHeight = windowHeight - headerHeight - controlsHeight - 40;
+            
+            container.style.maxHeight = `${maxHeight}px`;
+        }
+
+        // Apply responsive sizing
+        window.addEventListener('load', adjustIframeSize);
+        window.addEventListener('resize', adjustIframeSize);
+
+        // Help modal functionality
+        function toggleHelp() {
+            const modal = document.getElementById('helpModal');
+            modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Close help modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('helpModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Handle escape key to close modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const modal = document.getElementById('helpModal');
+                if (modal.style.display === 'block') {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
